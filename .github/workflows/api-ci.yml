@@ -1,0 +1,65 @@
+name: api CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - ".github/workflows/api-ci.yml"
+      - ".github/actions/api-setup/**"
+  pull_request:
+    paths:
+      - "api/**"
+      - ".github/workflows/api-ci.yml"
+      - ".github/actions/api-setup/**"
+
+concurrency:
+  group: api-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  UV_LOCKED: "1"
+
+defaults:
+  run:
+    working-directory: api
+
+jobs:
+  lint:
+    name: Lint e formatação
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/api-setup
+      - run: uv run ruff check --output-format=github .
+      - run: uv run ruff format --check .
+
+  typecheck:
+    name: Tipos (mypy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/api-setup
+      - run: uv run mypy
+
+  test:
+    name: Testes (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/api-setup
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: uv run pytest --cov --cov-report=term-missing --cov-report=xml
+      - uses: actions/upload-artifact@v4
+        if: matrix.python-version == '3.12'
+        with:
+          name: coverage-xml
+          path: api/coverage.xml

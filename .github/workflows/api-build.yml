@@ -1,0 +1,43 @@
+name: api Build
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "api/**"
+      - ".github/workflows/api-build.yml"
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "api/**"
+      - ".github/workflows/api-build.yml"
+
+concurrency:
+  group: api-build-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: api
+
+jobs:
+  package:
+    name: Pacote Python
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+          working-directory: api
+      - run: uv build --no-sources
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: api/dist/
+          retention-days: 7
