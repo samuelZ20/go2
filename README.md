@@ -292,3 +292,5 @@ Diagramas de como os serviços interagem, Docker, catálogo e CI em [`docs/arqui
 ## Licença
 
 Todos os direitos reservados ao NEURON/UFLA. Ver [`LICENSE`](LICENSE). As dependências de terceiros seguem as próprias licenças.
+
+## Samuel Frizzone Cardoso, Carlos Vincius, Prof. André Salgado
